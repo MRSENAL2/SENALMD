@@ -1,50 +1,41 @@
 const { fetchJson } = require('../lib/functions')
 const config = require('../config')
-const { cmd, commands } = require('../command')
-
-// FETCH API URL
-let baseUrl;
-(async () => {
-    let baseUrlGet = await fetchJson(`https://raw.githubusercontent.com/prabathLK/PUBLIC-URL-HOST-DB/main/public/url.json`)
-    baseUrl = baseUrlGet.api
-})();
+const { cmd } = require('../command')
 
 const yourName = "❗මෙය වෙබ් පිටපතක් වන අතර,සිංහල උපසිරැසි වෙනම එකතු කරගැනීමට *සිංහල උපසිරැසි* Button එක click කරන්න.\n\n> *©ᴘᴏᴡᴇʀᴇᴅ ʙʏ ꜱᴀʜᴀꜱ ᴛᴇᴄʜ*\n\n 🎬*ꜱᴀʜᴀꜱ ᴍᴅ ᴄɪɴᴇʀᴜ.ʟᴋ ᴍᴏᴠɪᴇ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ*🎬​";
 
-// Movie download command
 cmd({
     pattern: "movied",
     alias: ["googledrivemovie", "gdrivemovie"],
-    desc: "Download cinerulk movie",
+    desc: "Download Google Drive movie",
     category: "download",
     react: "🎬",
     filename: __filename
 },
 async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
     try {
-        // Check if the input URL is provided and starts with "https://"
-        if (!q || !q.startsWith("https://")) {
-            return reply("I'm having trouble figuring this out🤔.\nOnly use the Google drive link obtained from `www.cineru.lk`\n\nමට මෙය හදුනාගැනීමට අපහසුයි🤔.\n`www.cineru.lk` එකෙන් ලබා ගන්නා,Google drive ලින්ක් පමණක් භාවිතා කරන්න.\n\n> © Thenux AI ");
+        // Check if the input URL is provided and starts with "https://drive.google.com"
+        if (!q || !q.startsWith("https://drive.google.com")) {
+            return reply("I'm having trouble figuring this out🤔. Only use valid Google Drive links.");
         }
 
-        // Fetch data from API
-        let data = await fetchJson(`${baseUrl}/api/gdrivedl?url=${q}`);
-
-        console.log(data); // Log the API response for debugging
-
-        // Check if the expected data is available
-        if (!data || !data.data || !data.data.download) {
-            return reply("Sorry, I couldn't fetch the movie data. Please check the URL or try again.");
+        // Extract file ID from the Google Drive URL
+        const fileId = q.split('/d/')[1]?.split('/')[0];
+        if (!fileId) {
+            return reply("Sorry, I couldn't extract the file ID from the link.");
         }
 
-        // Respond with the download link and movie details
+        // Construct the direct download URL
+        const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+
         reply("🎬 *THENU ᴍᴅ ᴄɪɴᴇʀᴜ.ʟᴋ ᴍᴏᴠɪᴇ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ* 🎬​ \n*--------------------------------------------*\n𝕐𝕆𝕌ℝ 𝕄𝕆𝕍𝕀𝔼 𝕀𝕊\n*📤𝕌ℙ𝕃𝕆𝔸ᴅ𝕀ℕ𝔾 ◽◽◽◽◽◽*\n\n> *©ᴘᴏᴡᴇʀᴇᴅ ʙʏ THENU-AI*");
 
+        // Send the movie file link
         await conn.sendMessage(from, {
-            document: { url: data.data.download },
-            fileName: data.data.fileName,
-            mimetype: data.data.mimeType,
-            caption: `🍟Movie Name: ${data.data.fileName} | සිංහල උපසිරැසි ඇතුළත් කර නැත.\n🍫Bot Owner: 94767096711 \n\n${yourName}`
+            document: { url: downloadUrl },
+            fileName: "Movie.mp4",  // You can adjust the file name accordingly
+            mimetype: "video/mp4",
+            caption: `🍟Movie Name: Google Drive Movie | \n🍫Bot Owner: 94767096711 \n\n${yourName}`
         }, { quoted: mek });
 
     } catch (e) {
@@ -52,3 +43,4 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
         reply(`${e}`);
     }
 });
+
