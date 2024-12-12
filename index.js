@@ -25,12 +25,19 @@ if (!fs.existsSync(authFolder)) {
     fs.mkdirSync(authFolder);
 }
 
+// Helper function to construct MEGA download URL
+function constructMegaDownloadURL(fileId) {
+    return `https://mega.nz/file/${fileId}`;
+}
+
 // Download Session File if SESSION_ID Provided
 (async () => {
     if (!fs.existsSync(sessionFile)) {
         console.log('Downloading session file from MEGA link...');
         try {
-            const response = await axios({ url: SESSION_ID, method: 'GET', responseType: 'stream' });
+            // Replace this line with actual MEGA file ID if needed
+            const megaURL = constructMegaDownloadURL(SESSION_ID);
+            const response = await axios({ url: megaURL, method: 'GET', responseType: 'stream' });
             const writer = fs.createWriteStream(sessionFile);
             response.data.pipe(writer);
             writer.on('finish', () => console.log('Session file downloaded successfully.'));
