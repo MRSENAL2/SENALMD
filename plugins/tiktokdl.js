@@ -9,6 +9,12 @@ cmd({
     filename: __filename,
 }, async (message, client) => {
     const chatId = message.chatId;
+    
+    // Check if message.body is defined before using .split
+    if (!message.body) {
+        return client.sendMessage(chatId, { text: 'Please provide a valid TikTok URL!' });
+    }
+    
     const args = message.body.split(' ');
     const tiktokUrl = args[1]; // Assuming the command is "!tiktokd <URL>"
 
