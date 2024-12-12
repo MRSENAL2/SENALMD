@@ -3,7 +3,7 @@ const { cmd, commands } = require("../command");
 
 /**
  * TikTok Downloader Command
- * Downloads TikTok videos without a watermark.
+ * Downloads TikTok videos without watermark.
  */
 cmd({
     pattern: "tik",
@@ -29,14 +29,14 @@ async (conn, mek, m, {
         // Inform user that the download is in progress
         await reply("*⬇️ TikTok Video එක Download වෙමින් පවතී...*");
 
-        // TikTok downloader API endpoint
-        const apiURL = `https://api.tiklydown.com/v1/video?url=${encodeURIComponent(q)}`;
+        // TikTok downloader API endpoint (updated)
+        const apiURL = `https://api.toktokapi.com/api/tiktok?url=${encodeURIComponent(q)}`;
 
         // Fetch video data using Axios
         const { data } = await axios.get(apiURL);
 
-        if (data && data.video && data.video.no_watermark) {
-            const videoUrl = data.video.no_watermark;
+        if (data && data.video && data.video.url) {
+            const videoUrl = data.video.url;
 
             // Create a description for the download
             const desc = `╭━❮◆ SENAL MD TIKTOK DOWNLOADER ◆❯━╮
