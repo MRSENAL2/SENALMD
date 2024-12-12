@@ -5,6 +5,7 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
+const Boom = require('boom');
 
 // Environment Configurations
 require('dotenv').config();
@@ -35,17 +36,29 @@ function constructMegaDownloadURL(fileId) {
     if (!fs.existsSync(sessionFile)) {
         console.log('Downloading session file from MEGA link...');
         try {
-            // Replace this line with actual MEGA file ID if needed
+            // Ensure the SESSION_ID is the correct MEGA file ID
             const megaURL = constructMegaDownloadURL(SESSION_ID);
+            console.log('Mega URL:', megaURL);  // Log the URL to ensure it's correct
+
             const response = await axios({ url: megaURL, method: 'GET', responseType: 'stream' });
             const writer = fs.createWriteStream(sessionFile);
             response.data.pipe(writer);
-            writer.on('finish', () => console.log('Session file downloaded successfully.'));
-            writer.on('error', (err) => console.error('Error writing session file:', err));
+
+            writer.on('finish', () => {
+                console.log('Session file downloaded successfully.');
+                connectToWA();  // Call connection logic after download
+            });
+            writer.on('error', (err) => {
+                console.error('Error writing session file:', err);
+                process.exit(1);
+            });
         } catch (err) {
             console.error('Failed to download session file:', err);
             process.exit(1);
         }
+    } else {
+        console.log('Session file exists, proceeding with connection...');
+        connectToWA();  // If session exists, directly proceed to connection
     }
 })();
 
@@ -113,4 +126,3 @@ async function connectToWA() {
     sock.ev.on('creds.update', saveCreds);
 }
 
-connectToWA();
