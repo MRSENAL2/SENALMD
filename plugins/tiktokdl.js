@@ -1,58 +1,67 @@
-const { downloadTiktok } = require("@mrnima/tiktok-downloader");
-const { cmd, commands } = require('../command');
+const axios = require("axios");
+const { cmd, commands } = require("../command");
 
+/**
+ * TikTok Downloader Command
+ * Downloads TikTok videos without a watermark.
+ */
 cmd({
-    pattern: "tiktokd",
-    desc: "Download TikTok videos or images",
+    pattern: "tik",
+    desc: "Download TikTok videos",
     category: "download",
-    react: "🎵",
+    react: "🎥",
     filename: __filename,
-}, async (message, client) => {
-    const chatId = message.chatId;
-    
-    // Check if message.body is defined before using .split
-    if (!message.body) {
-        return client.sendMessage(chatId, { text: 'Please provide a valid TikTok URL!' });
-    }
-    
-    const args = message.body.split(' ');
-    const tiktokUrl = args[1]; // Assuming the command is "!tiktokd <URL>"
-
-    if (!tiktokUrl) {
-        return client.sendMessage(chatId, { text: 'Please provide a valid TikTok URL!' });
-    }
-
+},
+async (conn, mek, m, {
+    from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply
+}) => {
     try {
-        // Fetch TikTok content
-        const result = await downloadTiktok(tiktokUrl);
-
-        if (result && result.status) {
-            const { title, image, dl_link } = result.result;
-            const downloadMp4 = dl_link.download_mp4_hd || dl_link.download_mp4_1;
-
-            if (downloadMp4) {
-                // Send video file
-                await client.sendMessage(chatId, {
-                    video: { url: downloadMp4 },
-                    caption: `*Title:* ${title}`,
-                });
-            } else if (dl_link.images && dl_link.images.length > 0) {
-                // Send image carousel if images exist
-                const images = dl_link.images.map((img) => ({
-                    url: img,
-                    caption: title,
-                }));
-                for (const img of images) {
-                    await client.sendMessage(chatId, { image: { url: img.url }, caption: title });
-                }
-            } else {
-                await client.sendMessage(chatId, { text: 'No downloadable content found.' });
-            }
-        } else {
-            await client.sendMessage(chatId, { text: 'Failed to fetch TikTok content. Please try again.' });
+        // Validate the user input
+        if (!q) {
+            return reply("*❌ කරුණාකර TikTok Link එකක් ලබා දෙන්න!*");
         }
-    } catch (error) {
-        console.error(error);
-        await client.sendMessage(chatId, { text: 'An error occurred while processing the TikTok URL.' });
+        
+        // Ensure the provided link is a valid TikTok URL
+        if (!q.includes("tiktok.com")) {
+            return reply("*🚫 කෘතදෝෂයකි. එය TikTok Link එකක් බව නිවැරදිව තහවුරු කරන්න.*");
+        }
+
+        // Inform user that the download is in progress
+        await reply("*⬇️ TikTok Video එක Download වෙමින් පවතී...*");
+
+        // TikTok downloader API endpoint
+        const apiURL = `https://api.tiklydown.com/v1/video?url=${encodeURIComponent(q)}`;
+
+        // Fetch video data using Axios
+        const { data } = await axios.get(apiURL);
+
+        if (data && data.video && data.video.no_watermark) {
+            const videoUrl = data.video.no_watermark;
+
+            // Create a description for the download
+            const desc = `╭━❮◆ SENAL MD TIKTOK DOWNLOADER ◆❯━╮
+┃➤✰ 𝚄𝚁𝙻 : ${q}
+┃➤✰ 𝚃𝚈𝙿𝙴 : TikTok Video
+╰━━━━━━━━━━━━━━━⪼
+
+> ©ᴘᴏᴡᴇʀᴇᴅ ʙʏ 𝚂𝙴𝙽𝙰𝙻`;
+
+            // Send metadata and video
+            await conn.sendMessage(from, { caption: desc }, { quoted: mek });
+            await conn.sendMessage(from, {
+                video: { url: videoUrl },
+                mimetype: "video/mp4",
+                caption: "©ᴘᴏᴡᴇʀᴇᴅ ʙʏ 𝚂𝙴𝙽𝙰𝙻 𝙼𝙳",
+            }, { quoted: mek });
+
+            // Inform the user that the upload is complete
+            await reply("*✅ TikTok Video එක සාර්ථකව Upload කර ඇත!*");
+        } else {
+            // Handle cases where the video cannot be downloaded
+            reply("*🚫 Video Download Link සොයාගත නොහැක.*");
+        }
+    } catch (e) {
+        // Handle errors
+        reply(`🚫 *දෝෂයක් ඇති විය:*\n${e}`);
     }
 });
