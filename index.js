@@ -61,7 +61,7 @@ async function connectToWA() {
     const sock = makeWASocket({
         auth: state,
         browser: Browsers.macOS('Firefox'),
-        printQRInTerminal: true,
+        printQRInTerminal: false, // Disable QR in terminal
     });
 
     // Connection Update Listener
@@ -70,7 +70,7 @@ async function connectToWA() {
 
         if (qr) {
             console.log('Scan the QR code to connect:');
-            qrcode.generate(qr, { small: true });
+            qrcode.generate(qr, { small: false }); // Use large QR code for better clarity
         }
 
         if (connection === 'close') {
