@@ -1,9 +1,10 @@
 const axios = require("axios");
+const fg = require("api-dylux");
 const { cmd, commands } = require("../command");
 
 /**
  * TikTok Downloader Command
- * Downloads TikTok videos without watermark.
+ * Downloads TikTok videos without watermark using api-dylux.
  */
 cmd({
     pattern: "tik",
@@ -20,7 +21,7 @@ async (conn, mek, m, {
         if (!q) {
             return reply("*❌ කරුණාකර TikTok Link එකක් ලබා දෙන්න!*");
         }
-        
+
         // Ensure the provided link is a valid TikTok URL
         if (!q.includes("tiktok.com")) {
             return reply("*🚫 කෘතදෝෂයකි. එය TikTok Link එකක් බව නිවැරදිව තහවුරු කරන්න.*");
@@ -29,14 +30,11 @@ async (conn, mek, m, {
         // Inform user that the download is in progress
         await reply("*⬇️ TikTok Video එක Download වෙමින් පවතී...*");
 
-        // TikTok downloader API endpoint (updated)
-        const apiURL = `https://api.toktokapi.com/api/tiktok?url=${encodeURIComponent(q)}`;
+        // Use api-dylux TikTok downloader
+        const data = await fg.tiktok(q);
 
-        // Fetch video data using Axios
-        const { data } = await axios.get(apiURL);
-
-        if (data && data.video && data.video.url) {
-            const videoUrl = data.video.url;
+        if (data && data.nowm) {
+            const videoUrl = data.nowm;
 
             // Create a description for the download
             const desc = `╭━❮◆ SENAL MD TIKTOK DOWNLOADER ◆❯━╮
@@ -62,6 +60,7 @@ async (conn, mek, m, {
         }
     } catch (e) {
         // Handle errors
-        reply(`🚫 *දෝෂයක් ඇති විය:*\n${e}`);
+        reply(`🚫 *දෝෂයක් ඇති විය:*
+${e.message}`);
     }
 });
